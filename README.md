@@ -5,6 +5,10 @@ Easy to use TCP socket manager written in c
 Pandora wrappes sys/socket.h and netinet/in.h and gives you a simple interface to interact with, so you can connect to a sockets server, register a callback for a signal
  and make it work in just 6 lines of code
 
+# IMPORTANT!!!!
+Only Linux is suported, maybe it works in MacOs too, but havn't tried it myself, it has been developed, compiled and tested in Debian 8 x64. 
+Other architectures, systems or even distros could be not supported.
+
 # LETS SEE
 ```c
   #include <pandora.h>
