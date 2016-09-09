@@ -61,7 +61,7 @@ int _check(void) {
   return pandora.socket > -1;
 }
 
-void _on(char* ev, PND_HANDLER *callback) {
+void _on(char* ev, PND_HANDLER callback) {
   PND_LISTENER listener = {ev, callback};
   pandora.listeners[pandora.listenersc - 1] = listener;
   pandora.listenersc++;

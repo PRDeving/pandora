@@ -15,7 +15,7 @@
 #define PND_CONNECTION_ERROR 0x02
 #define PND_SOCKET_ERROR     0x03
 
-typedef void PND_HANDLER;
+typedef void* PND_HANDLER;
 typedef struct {
   char *msg;
   int *imsg;
@@ -37,7 +37,7 @@ struct Pandora {
   void (*info)(void);
   int (*check)(void);
   int (*connect)(char*, int);
-  void (*on)(char*, PND_HANDLER*);
+  void (*on)(char*, PND_HANDLER);
   void (*emit)(char*);
   void (*digest)(void);
   void (*close)(int);
@@ -48,7 +48,7 @@ struct Pandora {
 void _info(void);
 int _check(void);
 int _connect(char*, int);
-void _on(char*, PND_HANDLER*);
+void _on(char*, PND_HANDLER);
 void _emit(char*);
 void _digest(void);
 void _close(int);
