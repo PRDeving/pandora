@@ -8,3 +8,4 @@ hellomake:
 install:
 	mv include/pandora.h /usr/include/pandora.h
 	mv lib/libpandora.a /usr/lib/libpandora.a
+	rm -rf include lib
