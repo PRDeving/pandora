@@ -1,4 +1,4 @@
-#include "pandora.h"
+#include <pandora.h>
 
 PND_HANDLER handle(PND_MESSAGE *msgs) {
   pandora.emit("world!");
@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
   pandora.connect("localhost", 1337);
   pandora.info();
 
-  pandora.on("hello", &handle);
-  pandora.on("stop", &stopDigesting);
+  pandora.on("hello", handle);
+  pandora.on("stop", stopDigesting);
 
   while (loop) pandora.digest();
 
