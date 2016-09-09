@@ -1,0 +1,34 @@
+#! /bin/sh
+make
+sudo make install
+
+case $1 in
+  "client")
+    if [ -x client ];
+    then
+      rm client
+    fi
+    gcc client.c -lpandora -o client
+  ;;
+  "server")
+    if [ -x server ];
+    then
+      rm server
+    fi
+    gcc server.c -lpandora -o server
+  ;;
+  *)
+    if [ -x server ];
+    then
+      rm server
+    fi
+    if [ -x client ];
+    then
+      rm client
+    fi
+    gcc client.c -lpandora -o client
+    gcc server.c -lpandora -o server
+  ;;
+esac
+
+

@@ -1,5 +1,5 @@
 # PANDORA
-Easy to use TCP socket manager written in c
+Easy to use one to one TCP socket manager written in c
 
 # HOW DOES IT WORKS?
 Pandora wrappes sys/socket.h and netinet/in.h and gives you a simple interface to interact with, so you can connect to a sockets server, register a callback for a signal
