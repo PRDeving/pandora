@@ -26,16 +26,20 @@ typedef struct {
 } PND_LISTENER;
 
 struct Pandora {
+  char *version;
+  int status;
   char *host;
   int port;
   int socket;
   int listenersc;
+  int clientsc;
 
   struct hostent *server;
   /* char buffer[256]; */
 
   void (*info)(void);
   int (*check)(void);
+  int (*listen)(int);
   int (*connect)(char*, int);
   void (*on)(char*, PND_HANDLER);
   void (*emit)(char*);
@@ -44,9 +48,12 @@ struct Pandora {
 
   struct sockaddr_in serv_addr;
   PND_LISTENER *listeners;
+  struct sockaddr_in *clients_addr;
+  int *clients;
 };
 void _info(void);
 int _check(void);
+int _listen(int);
 int _connect(char*, int);
 void _on(char*, PND_HANDLER);
 void _emit(char*);
