@@ -7,7 +7,9 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netdb.h> 
 
 #define PND_OK               0x00
@@ -48,8 +50,8 @@ struct Pandora {
 
   struct sockaddr_in serv_addr;
   PND_LISTENER *listeners;
-  struct sockaddr_in *clients_addr;
   int *clients;
+  fd_set fdclients;
 };
 void _info(void);
 int _check(void);
