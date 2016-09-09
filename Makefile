@@ -1,7 +1,7 @@
 hellomake: 
 	mkdir include lib tmp
-	cp pandora.h include/pandora.h
-	gcc -c pandora.c -o tmp/libpandora.o
+	cp src/pandora.h include/pandora.h
+	gcc -c src/pandora.c -o tmp/libpandora.o
 	ar rcs lib/libpandora.a tmp/libpandora.o
 	rm -rf tmp
 

@@ -40,11 +40,11 @@ to compile your program you will need to import pandora.h and compile with
 clone or download
 ```
 # this compiles as static library (same as make)
-$ gcc -c pandora.c -o libpandora.o
+$ gcc -c src/pandora.c -o libpandora.o
 $ ar rcs libpandora.a libpandora.o
 
 # this compiles as shared
-$ gcc -c -fPIC pandora.c -o libpandora.o
+$ gcc -c -fPIC src/pandora.c -o libpandora.o
 $ gcc -shared -Wl,-soname,libpandora.so.1 -o libpandora.so.1.0.1 libpandora.o
 ```
 
