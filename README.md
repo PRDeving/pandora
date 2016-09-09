@@ -21,6 +21,7 @@ Pandora wrappes sys/socket.h and netinet/in.h and gives you a simple interface t
 # BUILD AND INSTALL
 ### easy
 With this method pandora will be compiled and installed as static library
+
 clone or download
 ```
 $ cd pandora
@@ -32,7 +33,6 @@ to compile your program you will need to import pandora.h and compile with
 `gcc main.c -lpandora`
 
 ### hard (use to compile as shared or with your own conf)
-gcc -c pandora.c -o libpandora.o ar rcs libpandora.a libpandora.o gcc -static client.c -L. -lpandora
 clone or download
 ```
 # this compiles as static library (same as make)
