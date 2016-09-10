@@ -67,7 +67,8 @@ $ sudo make install
 ```
 
 to compile your program you will need to import pandora.h and compile with
-`gcc main.c -lpandora`
+`gcc main.c -lpandora .lpthread`
+*pthread is needed too, will be included somehow soon*
 
 ### hard (use to compile as shared or with your own conf)
 clone or download
@@ -86,7 +87,9 @@ $ gcc -shared -Wl,-soname,libpandora.so.1 -o libpandora.so.1.0.1 libpandora.o
 opens a stream to the server, it returns -1 if something went wrong and the id of the socket if the connection is setted
 
 ### pandora.listen(int port)
-starts listening port, this will block the main thread, so all events callbacks has to be defined before calling this function
+starts listening port and fires registered pandora.on() events
+#### Update
+- Raises a thread, main process isnt freezed anymore
 
 ### pandora.check(void)
 returns true if it's connected and false if not
@@ -109,6 +112,7 @@ closes the socket and free the memory, the param status is the return signal on 
 
 # CHANGELOG
 [0.0.2] New supports multiple clients
+- Now pandora.listen(int) raises a thread, so the main process is not blocked anymore
 
 #ISSUES
     -   some sessions aint killed appropiatelly, will be fixed in next patch
