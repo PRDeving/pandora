@@ -20,43 +20,8 @@ struct Pandora pandora = {
   _close,     // int _close
 };
 
-int _listen(int port) {
-  if (pandora.status > 0) {
-    printf("ERROR pandora is currently %s", pandora.status == 1 ? "conected" : "listening");
-    return PND_INVOCATION_ERROR;
-  }
-  if (!port){
-    printf("Error connecting\n");
-    return PND_INVOCATION_ERROR;
-  }
-  printf("Opening port %d to listen...", port);
 
-  pandora.port = port;
-  pandora.socket = socket(AF_INET, SOCK_STREAM, 0);
-  if (pandora.socket < 0) {
-    printf("ERROR\ncant get sockfd\n");
-    return PND_CONNECTION_ERROR;
-  }
-  printf("OPEN\n");
-
-  int opt = 1;
-  if(setsockopt(pandora.socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
-      printf("ERROR\ncant configure socket\n");
-      return PND_SOCKET_ERROR;
-  }
-
-  bzero((char*) &pandora.serv_addr, sizeof(pandora.serv_addr));
-  pandora.serv_addr.sin_family = AF_INET;
-  pandora.serv_addr.sin_addr.s_addr = INADDR_ANY;
-  pandora.serv_addr.sin_port = htons(pandora.port);
-
-  if (bind(pandora.socket, (struct sockaddr*) &pandora.serv_addr, sizeof(pandora.serv_addr)) < 0 || listen(pandora.socket, 5) < 0) {
-    printf("ERROR\ncant bind or listen socket\n");
-    return 5;
-  }
-
-  pandora.status = 2;
-
+void* _hostRuntime(){
   pandora.clients = malloc(1 * sizeof(int));
   int maxsd;
   int activity;
@@ -68,11 +33,10 @@ int _listen(int port) {
 
   int needsort;
   int c;
-
   int *temp;
 
-  printf("Waiting for connection...\n");
-  while (1) {
+  printf("Waiting for connections...\n");
+  while (pandora.status = PND_STATUS_LISTENING) {
     FD_ZERO(&pandora.fdclients);
     FD_SET(pandora.socket, &pandora.fdclients);
     maxsd = pandora.socket;
@@ -87,18 +51,15 @@ int _listen(int port) {
 
     // Main socket
     if (FD_ISSET(pandora.socket, &pandora.fdclients)) {
-      if ((activesocket = accept(pandora.socket, (struct sockaddr *)&pandora.serv_addr, (socklen_t*)&socketlen)) < 0){
+      if ((activesocket = accept(pandora.socket, (struct sockaddr *)&pandora.serv_addr, (socklen_t*)&socketlen)) < 0)
         printf("ERROR cant accept connection\n");
-        return PND_SOCKET_ERROR;
-      }
 
-      printf("New connection , socket fd: %d , ip: %s , port: %d \n" , activesocket , inet_ntoa(pandora.serv_addr.sin_addr) , ntohs(pandora.serv_addr.sin_port));
+      printf("New client connected - fd: %d, ip: %s, port: %d\n", activesocket,
+          inet_ntoa(pandora.serv_addr.sin_addr),
+          ntohs(pandora.serv_addr.sin_port));
 
       // emit "connection"
-      if( send(activesocket, "connection\0", 11, 0) != 11 ) {
-        printf("ERROR handshake doesnt match\n");
-        return PND_SOCKET_ERROR;
-      }
+      if( send(activesocket, "connection\0", 11, 0) != 11 ) printf("ERROR handshake doesnt match\n");
 
       // push client
       pandora.clientsc++;
@@ -163,26 +124,71 @@ int _listen(int port) {
     }
     printf("\n%d clients connected\n\n", pandora.clientsc);
   }
+}
+
+int _listen(int port) {
+  if (pandora.status > PND_STATUS_DISCONNECTED) {
+    printf("ERROR pandora is currently %s\n", pandora.status == PND_STATUS_CONNECTED ? "conected" : "listening");
+    return PND_ERROR_INVOCATION;
+  }
+  if (!port){
+    printf("Error connecting\n");
+    return PND_ERROR_INVOCATION;
+  }
+  printf("Opening port %d to listen...", port);
+
+  pandora.port = port;
+  pandora.socket = socket(AF_INET, SOCK_STREAM, 0);
+  if (pandora.socket < 0) {
+    printf("ERROR\ncant get sockfd\n");
+    return PND_ERROR_CONNECTION;
+  }
+  printf("OPEN\n");
+
+  int opt = 1;
+  if(setsockopt(pandora.socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0) {
+      printf("ERROR\ncant configure socket\n");
+      return PND_ERROR_SOCKET;
+  }
+
+  bzero((char*) &pandora.serv_addr, sizeof(pandora.serv_addr));
+  pandora.serv_addr.sin_family = AF_INET;
+  pandora.serv_addr.sin_addr.s_addr = INADDR_ANY;
+  pandora.serv_addr.sin_port = htons(pandora.port);
+
+  if (bind(pandora.socket, (struct sockaddr*) &pandora.serv_addr, sizeof(pandora.serv_addr)) < 0 || listen(pandora.socket, 5) < 0) {
+    printf("ERROR\ncant bind or listen socket\n");
+    return 5;
+  }
+
+  pandora.status = PND_STATUS_LISTENING;
+  int running = pthread_create(&pandora.hostRuntime, NULL, _hostRuntime, NULL);
+  if (running == 0 ) printf("Listener thread is up\n");
+  else {
+    printf("ERROR setting up listener thread, server is not running\n");
+    pandora.status = PND_STATUS_DISCONNECTED;
+  }
+
   return pandora.socket;
 }
 
 int _connect(char *host, int port) {
   if (pandora.status > 0) {
-    printf("ERROR pandora is currently %s", pandora.status == 1 ? "conected" : "listening");
-    return PND_INVOCATION_ERROR;
+    printf("ERROR pandora is currently %s", pandora.status == 1 ? "conected" : "listening\n");
+    return PND_ERROR_INVOCATION;
   }
   if (!strlen(host) || !port) {
     printf("Error connecting\n");
-    return PND_INVOCATION_ERROR;
+    return PND_ERROR_INVOCATION;
   }
-  printf("creating connection with %s:%d...", host, port);
+  printf("creating connection with %s:%d...\n", host, port);
   pandora.host = host;
   pandora.port = port;
   pandora.socket = socket(AF_INET, SOCK_STREAM, 0);
   pandora.server = gethostbyname(pandora.host);
   if (pandora.socket < 0 || pandora.server < 0) {
     printf("ERROR\ncant get sockfd or can't reach host\n");
-    return PND_CONNECTION_ERROR;
+    return PND_ERROR_CONNECTION;
   }
 
   bzero((char*) &pandora.serv_addr, sizeof(pandora.serv_addr));
@@ -194,7 +200,7 @@ int _connect(char *host, int port) {
 
   if (connect(pandora.socket,(struct sockaddr*) &pandora.serv_addr,sizeof(pandora.serv_addr)) < 0) {
     printf("ERROR cant connect\n");
-    pandora.close(PND_CONNECTION_ERROR);
+    pandora.close(PND_ERROR_CONNECTION);
   }
 
   pandora.status = 1;
@@ -209,10 +215,11 @@ void _info(void) {
           pandora.port);
   printf("STATUS\n \
           %s\n", \
-          pandora.status == 2 ? "listening" : (pandora.status ? "connected" : "disconnected"));
+          pandora.status == PND_STATUS_LISTENING ? "listening" :
+          (pandora.status ? "connected" : "disconnected"));
 }
 int _check(void) {
-  return pandora.status > 0;
+  return pandora.status > PND_STATUS_DISCONNECTED;
 }
 
 void _on(char* ev, PND_HANDLER callback) {
@@ -235,22 +242,22 @@ void _send(int client, char* msg) {
 void _broadcast(char* msg) {
   int c = pandora.clientsc + 1;
   while (c--) {
-      printf("broadcast to %d as %d", pandora.clients[c], c);
+      printf("\tbroadcast to %d as %d\n", pandora.clients[c], c);
       _send(pandora.clients[c], msg);
   }
 }
 void _emit(char* msg) {
-  if (pandora.status == 2) _broadcast(msg);
-  else if (pandora.status == 1) _send(pandora.socket, msg);
+  if (pandora.status == PND_STATUS_LISTENING) _broadcast(msg);
+  else if (pandora.status == PND_STATUS_CONNECTED) _send(pandora.socket, msg);
 }
 
 char *buffer;
 void _digest() {
   buffer = malloc(sizeof(char) * 255);
-  int isocket = read(pandora.status == 1 ? pandora.socket : pandora.clients[0], buffer, 255);
+  int isocket = read(pandora.status == PND_STATUS_CONNECTED ? pandora.socket : pandora.clients[0], buffer, 255);
   if (isocket < 0) {
     printf("ERROR reading from socket\n");
-    pandora.close(PND_SOCKET_ERROR);
+    pandora.close(PND_ERROR_SOCKET);
   }
   buffer = realloc(buffer, strlen(buffer) * sizeof(char));
   if (strlen(buffer) == 0) pandora.close(PND_OK);
@@ -264,6 +271,7 @@ void _digest() {
     }
   }
   close(isocket);
+  free(buffer);
 }
 
 void _close(int err) {

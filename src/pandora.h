@@ -11,11 +11,16 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h> 
+#include <pthread.h>
 
-#define PND_OK               0x00
-#define PND_INVOCATION_ERROR 0x01
-#define PND_CONNECTION_ERROR 0x02
-#define PND_SOCKET_ERROR     0x03
+#define PND_STATUS_DISCONNECTED 0x00
+#define PND_STATUS_CONNECTED    0x01
+#define PND_STATUS_LISTENING    0x02
+
+#define PND_OK                  0x06
+#define PND_ERROR_INVOCATION    0x07
+#define PND_ERROR_CONNECTION    0x08
+#define PND_ERROR_SOCKET        0x09
 
 typedef void* PND_HANDLER;
 typedef struct {
@@ -52,6 +57,7 @@ struct Pandora {
   PND_LISTENER *listeners;
   int *clients;
   fd_set fdclients;
+  pthread_t hostRuntime;
 };
 void _info(void);
 int _check(void);
