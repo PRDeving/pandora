@@ -26,8 +26,8 @@ case $1 in
     then
       rm client
     fi
-    gcc client.c -lpandora -o client
-    gcc server.c -lpandora -o server
+    gcc client.c -lpandora -lpthread -o client
+    gcc server.c -lpandora -lpthread -o server
   ;;
 esac
 
