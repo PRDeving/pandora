@@ -27,6 +27,12 @@ typedef struct {
   char *msg;
   int *imsg;
 } PND_MESSAGE;
+
+typedef struct {
+  char *key;
+  void *value;
+} PND_EVENT;
+
 typedef struct {
   char *ev;
   PND_HANDLER (*callback)(PND_MESSAGE*);

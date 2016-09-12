@@ -20,6 +20,30 @@ struct Pandora pandora = {
   _close,     // int _close
 };
 
+char *PND_serialize_event (char *ev, void* params){
+  int totsize = sizeof(ev) + sizeof((char*)params) + 6;
+  char *str = malloc(totsize * sizeof(char));
+  strcpy(str, ev);
+  strcat(str, "þ↓ŧæ");
+  strcat(str, params);
+  return str;
+}
+
+PND_EVENT *PND_deserialize_event (char *serie) {
+  PND_EVENT *ev = malloc(sizeof(PND_EVENT));
+
+  serie = strdup(serie);
+  printf("serie: %s\n", serie);
+  char *piece;
+
+  piece = strtok(serie, "þ↓ŧæ");
+    ev -> key = piece;
+  piece = strtok(NULL, "þ↓ŧæ");
+    ev -> value = piece;
+
+  printf("{ key:%s, value:%s }\n", ev -> key, ev -> value);
+  return ev;
+}
 
 void* _hostRuntime(){
   pandora.clients = malloc(1 * sizeof(int));
