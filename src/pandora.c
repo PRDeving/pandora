@@ -21,7 +21,7 @@ struct Pandora pandora = {
 };
 
 char *PND_serialize_event (char *ev, void* params){
-  int totsize = sizeof(ev) + sizeof((char*)params) + 6;
+  int totsize = strlen(ev) + strlen((char*)params);
   char *str = malloc(totsize * sizeof(char));
   strcpy(str, ev);
   strcat(str, "þ↓ŧæ");
@@ -83,7 +83,8 @@ void* _hostRuntime(){
           ntohs(pandora.serv_addr.sin_port));
 
       // emit "connection"
-      if( send(activesocket, "connection\0", 11, 0) != 11 ) printf("ERROR handshake doesnt match\n");
+      char *handshake = PND_serialize_event("connection\0", "start\0");
+      if( send(activesocket, handshake, strlen(handshake), 0) != strlen(handshake)) printf("ERROR handshake doesnt match\n");
 
       // push client
       pandora.clientsc++;
@@ -112,13 +113,15 @@ void* _hostRuntime(){
           needsort++;
         } else { // if not, its a input
           printf("Message recieved: %s\n", buffer);
-          PND_MESSAGE msg = { buffer };
+          PND_EVENT *ev = PND_deserialize_event(buffer);
+          PND_MESSAGE msg = { ev -> value };
           int cev = pandora.listenersc - 1;
           while (cev--) {
-            if (strcmp(buffer, pandora.listeners[cev].ev) == 0) {
+            if (strcmp(ev -> key, pandora.listeners[cev].ev) == 0) {
               pandora.listeners[cev].callback(&msg);
             }
           }
+          free(ev);
         }
       }
     }
@@ -270,9 +273,10 @@ void _broadcast(char* msg) {
       _send(pandora.clients[c], msg);
   }
 }
-void _emit(char* msg) {
-  if (pandora.status == PND_STATUS_LISTENING) _broadcast(msg);
-  else if (pandora.status == PND_STATUS_CONNECTED) _send(pandora.socket, msg);
+void _emit(char* key, void* msg) {
+  char *serie = PND_serialize_event(key, msg);
+  if (pandora.status == PND_STATUS_LISTENING) _broadcast(serie);
+  else if (pandora.status == PND_STATUS_CONNECTED) _send(pandora.socket, serie);
 }
 
 char *buffer;
@@ -283,17 +287,20 @@ void _digest() {
     printf("ERROR reading from socket\n");
     pandora.close(PND_ERROR_SOCKET);
   }
+  printf("\n\n\n\tBUFFER: %s\n\n\n", buffer);
   buffer = realloc(buffer, strlen(buffer) * sizeof(char));
   if (strlen(buffer) == 0) pandora.close(PND_OK);
-  printf("server says: %s\n", buffer);
-  PND_MESSAGE msg = { buffer };
+
+  PND_EVENT *ev = PND_deserialize_event(buffer);
+  PND_MESSAGE msg = { ev -> value };
 
   int c = pandora.listenersc - 1;
   while (c--) {
-    if (strcmp(buffer, pandora.listeners[c].ev) == 0) {
+    if (strcmp(ev -> key, pandora.listeners[c].ev) == 0) {
       pandora.listeners[c].callback(&msg);
     }
   }
+  free(ev);
   close(isocket);
   free(buffer);
 }

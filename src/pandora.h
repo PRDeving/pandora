@@ -55,7 +55,7 @@ struct Pandora {
   int (*listen)(int);
   int (*connect)(char*, int);
   void (*on)(char*, PND_HANDLER);
-  void (*emit)(char*);
+  void (*emit)(char*, void*);
   void (*digest)(void);
   void (*close)(int);
 
@@ -70,7 +70,7 @@ int _check(void);
 int _listen(int);
 int _connect(char*, int);
 void _on(char*, PND_HANDLER);
-void _emit(char*);
+void _emit(char*, void*);
 void _digest(void);
 void _close(int);
 
